@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Prolog
 
 main :: IO ()
-main = someFunc
+main = prolog
