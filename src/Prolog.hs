@@ -15,7 +15,7 @@ data Pred = Pred
 data Clause = Clause Pred Pred deriving (Eq, Show)
 
 type Sub = Id -> Maybe Term
-type Answer = Boolean
+type Answer = Bool
 type FailureK = () -> Answer
 type SuccessK = Sub -> FailureK -> Answer
 type UnifySuccessK = Sub -> Answer
@@ -48,6 +48,7 @@ proveGoal (d :: delta') p theta delta ks kf =
      in unify p' p theta (\theta' -> proveAll pi theta' delta ks kf') kf'
 
 copy :: Clause -> Clause
+copy = undefined
 
 unify :: Pred -> Pred -> Sub -> UnifySuccessK -> FailureK -> Answer
 unify = undefined
