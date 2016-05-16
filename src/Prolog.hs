@@ -12,7 +12,7 @@ data Pred = Pred
     , getArgs :: [Term]
     } deriving (Eq, Show)
 
-data Clause = Clause Pred Pred deriving (Eq, Show)
+data Clause = Clause Pred [Pred] deriving (Eq, Show)
 
 type Sub = Id -> Maybe Term
 type Answer = Bool
@@ -42,7 +42,7 @@ prove p theta delta ks kf = proveGoal delta p theta delta ks kf
 
 proveGoal :: [Clause] -> Pred -> Sub -> [Clause] -> SuccessK -> FailureK -> Answer
 proveGoal [] p theta delta ks kf = kf ()
-proveGoal (d :: delta') p theta delta ks kf =
+proveGoal (d : delta') p theta delta ks kf =
     let (Clause p' pi) = copy d
         kf' = \() -> proveGoal delta' p theta delta ks kf
      in unify p' p theta (\theta' -> proveAll pi theta' delta ks kf') kf'
