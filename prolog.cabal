@@ -16,6 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Prolog
+                     , Prolog.Parser
   build-depends:       base
                      , megaparsec
   default-language:    Haskell2010

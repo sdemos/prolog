@@ -1,5 +1,7 @@
 module Prolog where
 
+import Prolog.Parser
+
 data Id = Id String deriving (Eq, Show)
 
 data Term = TNum Integer

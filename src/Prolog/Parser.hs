@@ -1,10 +1,14 @@
-module Prolog where
+module Prolog.Parser where
+
+import Prelude hiding (exp)
 
 import Text.Megaparsec
 import Text.Megaparsec.String
+import qualified Text.Megaparsec.Lexer as L
 
 type Prolog = [Clause]
 data Clause = Clause Pexp Pexps
+    deriving (Show, Eq)
 type Pexps  = [Pexp]
 data Pexp   = PExp Exp
             | PIs Exp Exp
@@ -14,18 +18,22 @@ data Pexp   = PExp Exp
             | PGreatEq Exp Exp
             | PEq Exp Exp
             | PNotEq Exp Exp
+    deriving (Show, Eq)
 data Exp    = ETerm Term
             | EPlus Exp Term
             | EMinus Exp Term
+    deriving (Show, Eq)
 data Term   = TFactor Factor
             | TMult Term Factor
             | TDiv Term Factor
+    deriving (Show, Eq)
 data Factor = FVar Var
             | FNum Integer
             | FId Id
             | FPred Id Pexps
             | FNeg Factor
             | FGroup Exp
+    deriving (Show, Eq)
 type Var    = String
 type Id     = String
 
@@ -51,8 +59,8 @@ pexp = try isPexp
    <|> try greatPexp
    <|> try lessEqPexp
    <|> try greatEqPexp
-   <|> try EqPexp
-   <|> try NotEqPexp
+   <|> try eqPexp
+   <|> try notEqPexp
    <|> PExp <$> exp
 
 pexpOp :: String -> (Exp -> Exp -> Pexp) -> Parser Pexp
@@ -70,7 +78,7 @@ greatPexp   = pexpOp ">"  PGreat
 lessEqPexp  = pexpOp "<=" PLessEq
 greatEqPexp = pexpOp ">=" PGreatEq
 eqPexp      = pexpOp "="  PEq
-notEqPexp   = pexpOp "\=" PNotEq
+notEqPexp   = pexpOp "/=" PNotEq
 
 exp :: Parser Exp
 exp = try plusExp
@@ -96,7 +104,7 @@ term = try multTerm
    <|> TFactor <$> factor
 
 termOp :: String -> (Term -> Factor -> Term) -> Parser Term
-termOp = op con = do
+termOp op con = do
     t <- term
     space
     string op
@@ -113,21 +121,22 @@ factor = try var
      <|> try num
      <|> try pterm
      <|> try pterm0
-     <|> try (FNeg <$> string "-" *> space *> factor)
+     <|> try (FNeg <$> (string "-" *> space *> factor))
      <|> try group
 
 parens = between (string "(") (string ")")
 
+num = FNum <$> L.integer
 -- vars start with an uppercase letter or an _
 var = do
-    s <- try upperChar <|> try (string "_")
+    s <- try upperChar <|> try (char '_')
     rest <- many alphaNumChar
     return $ FVar (s : rest)
 -- ids start with a lowercase letter
 ident = do
     s <- lowerChar
     rest <- many alphaNumChar
-    return $ FId (s : rest)
+    return $ (s : rest)
 pterm = FPred <$> ident <*> parens pexps
-pterm0 = ident
-group = parens exp
+pterm0 = FId <$> ident
+group = FGroup <$> parens exp
